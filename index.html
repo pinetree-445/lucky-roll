@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#070a0e">
+<meta name="description" content="双盘抽签：先抽演讲主题，再定上台人选。主题抽一份少一份，人选仅落一次。">
+<title>双盘抽签 · 演讲主题与上台人选</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%23090d11'/%3E%3Ccircle%20cx='32'%20cy='32'%20r='21'%20fill='none'%20stroke='%23d9b675'%20stroke-width='2'/%3E%3Cpath%20d='M32%208v9M32%2047v9M8%2032h9M47%2032h9'%20stroke='%23d9b675'%20stroke-width='2'%20stroke-linecap='round'/%3E%3Ccircle%20cx='32'%20cy='32'%20r='5'%20fill='%23d9b675'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --ink:#070a0e;
+    --panel:#0e1419;
+    --panel-deep:#090d11;
+    --cream:#f3e8d4;
+    --cream-soft:rgba(243,232,212,.66);
+    --cream-faint:rgba(243,232,212,.38);
+    --gold:#d9b675;
+    --gold-deep:#a9864f;
+    --gold-faint:rgba(217,182,117,.16);
+    --line:rgba(217,182,117,.15);
+    --line-strong:rgba(217,182,117,.34);
+    --cinnabar:#8e343c;
+    --jade:#3f7059;
+    --serif:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+    --sans:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  html{color-scheme:dark;scroll-behavior:smooth}
+  body{
+    margin:0;
+    min-height:100vh;
+    overflow-x:hidden;
+    color:var(--cream);
+    font-family:var(--sans);
+    background:
+      radial-gradient(1150px 720px at 12% -10%,rgba(24,78,84,.32),transparent 58%),
+      radial-gradient(950px 640px at 96% 0%,rgba(118,39,46,.21),transparent 62%),
+      radial-gradient(1000px 840px at 50% 110%,rgba(198,154,86,.07),transparent 64%),
+      var(--ink);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  ::selection{background:rgba(217,182,117,.28);color:#fff}
+
+  .ambient{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .ambient::before{
+    content:"";position:absolute;inset:-2px;
+    background-image:
+      linear-gradient(rgba(217,182,117,.035) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(217,182,117,.035) 1px,transparent 1px);
+    background-size:88px 88px;
+    -webkit-mask-image:radial-gradient(ellipse at 50% 18%,#000 0%,transparent 72%);
+    mask-image:radial-gradient(ellipse at 50% 18%,#000 0%,transparent 72%);
+  }
+  .ambient::after{
+    content:"";position:absolute;inset:0;opacity:.045;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");
+  }
+
+  .page{
+    position:relative;z-index:1;
+    width:min(100%,1240px);
+    margin:0 auto;
+    padding:0 34px 72px;
+  }
+
+  /* ---------- masthead ---------- */
+  .topline{
+    display:flex;align-items:center;justify-content:space-between;gap:24px;
+    padding:26px 0 18px;
+    border-bottom:1px solid var(--line);
+    animation:rise .8s .05s both;
+  }
+  .brand{display:flex;align-items:center;gap:14px;min-width:0}
+  .seal{
+    width:40px;height:40px;flex:none;
+    display:grid;place-items:center;
+    color:#f8e9cf;font-family:var(--serif);font-size:23px;font-weight:600;
+    background:linear-gradient(145deg,#a64148,#77282f);
+    border:1px solid rgba(248,233,207,.22);
+    border-radius:5px;
+    box-shadow:0 8px 22px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.18);
+  }
+  .brand-text b{display:block;font-family:var(--serif);font-size:15px;font-weight:500;letter-spacing:.18em}
+  .brand-text i{display:block;margin-top:5px;font-style:normal;font-size:8px;letter-spacing:.27em;color:var(--cream-faint)}
+  .top-meta{display:flex;align-items:center;gap:14px;white-space:nowrap;font-size:9.5px;letter-spacing:.24em;color:var(--cream-soft)}
+  .top-meta .rule{display:block;width:54px;height:1px;background:var(--line-strong)}
+
+  .hero{
+    position:relative;
+    display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:52px;
+    padding:64px 0 68px;
+  }
+  .hero-copy{animation:rise .95s .16s both;min-width:0}
+  .eyebrow{
+    margin:0;
+    font-size:9px;font-weight:500;line-height:1.5;
+    letter-spacing:.28em;color:var(--gold-deep);
+  }
+  .eyebrow .slash{margin:0 4px;color:rgba(217,182,117,.35)}
+  .hero h1{
+    margin:20px 0 26px;
+    font-family:var(--serif);font-size:clamp(58px,8.4vw,104px);font-weight:600;
+    line-height:.98;letter-spacing:.06em;color:#f8efdd;
+    text-shadow:0 30px 90px rgba(0,0,0,.5);
+  }
+  .lede{
+    position:relative;margin:0;padding-left:18px;
+    max-width:540px;
+    font-size:14.5px;line-height:2.05;letter-spacing:.06em;color:var(--cream-soft);
+  }
+  .lede::before{
+    content:"";position:absolute;left:0;top:5px;bottom:5px;width:1px;
+    background:linear-gradient(180deg,var(--gold),rgba(217,182,117,0));
+  }
+
+  .hero-orbit{
+    position:relative;width:224px;height:224px;flex:none;margin-right:16px;
+  }
+  .orbit-svg{position:absolute;inset:0;width:100%;height:100%;animation:orbit 58s linear infinite}
+  .orbit-ring-text{
+    fill:rgba(217,182,117,.52);
+    font-family:var(--sans);font-size:8px;letter-spacing:2.5px;
+  }
+  .orbit-center{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding-top:4px;pointer-events:none;
+  }
+  .orbit-center b{
+    font-family:var(--serif);font-size:56px;font-weight:400;line-height:1;
+    color:var(--gold);opacity:.92;text-shadow:0 0 28px rgba(217,182,117,.22);
+  }
+  .orbit-center small{
+    margin-top:8px;font-size:7px;letter-spacing:.34em;color:var(--cream-faint);
+  }
+
+  /* ---------- wheels ---------- */
+  .stage{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;
+    align-items:stretch;
+  }
+  .wheel-card{
+    position:relative;display:flex;flex-direction:column;
+    padding:28px 28px 22px;
+    border:1px solid var(--line);border-radius:22px;
+    background:linear-gradient(155deg,rgba(20,27,33,.92),rgba(9,13,17,.96) 64%);
+    box-shadow:0 44px 100px -34px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.035);
+    overflow:hidden;
+    animation:rise 1s .3s both;
+  }
+  .wheel-card--b{animation-delay:.42s}
+  .wheel-card::before{
+    content:"";position:absolute;left:0;right:0;top:0;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(217,182,117,.6),transparent);
+    opacity:.75;
+  }
+  .wheel-card::after{
+    content:"";position:absolute;width:340px;height:340px;right:-160px;top:-180px;pointer-events:none;
+    background:radial-gradient(circle,rgba(217,182,117,.07),transparent 68%);
+  }
+  .wheel-card--b::after{background:radial-gradient(circle,rgba(63,112,89,.12),transparent 68%)}
+
+  .card-head{position:relative;z-index:1;display:flex;align-items:center;gap:14px;min-height:52px}
+  .plate{
+    display:grid;place-items:center;flex:none;
+    width:44px;height:44px;border-radius:50%;
+    border:1px solid var(--line-strong);
+    color:var(--gold);background:rgba(217,182,117,.045);
+    font-family:var(--serif);font-size:22px;font-weight:500;
+  }
+  .plate-a{box-shadow:inset 0 0 22px rgba(142,52,60,.34)}
+  .plate-b{
+    color:#b7d2c1;border-color:rgba(139,184,158,.32);background:rgba(63,112,89,.09);
+    box-shadow:inset 0 0 22px rgba(63,112,89,.35);
+  }
+  .card-title .eyebrow{margin-bottom:6px;font-size:8px;letter-spacing:.24em;color:var(--gold-deep)}
+  .wheel-card--b .card-title .eyebrow{color:rgba(157,193,172,.66)}
+  .card-title h2{margin:0;font-family:var(--serif);font-size:24px;font-weight:500;line-height:1.2;letter-spacing:.05em}
+  .stock{
+    margin-left:auto;display:grid;grid-template-columns:auto auto;align-items:baseline;column-gap:4px;
+    text-align:right;
+  }
+  .stock strong{
+    font-family:var(--serif);font-size:34px;font-weight:400;line-height:1;
+    color:var(--gold);font-variant-numeric:tabular-nums;
+  }
+  .stock strong.bump{animation:bump .45s ease}
+  .stock span{font-size:10.5px;color:var(--cream-soft);letter-spacing:.06em}
+  .stock em{
+    grid-column:1/-1;margin-top:6px;font-style:normal;
+    font-size:7.5px;letter-spacing:.26em;color:var(--cream-faint);
+  }
+  .stock-once em{color:rgba(181,210,192,.62)}
+
+  .wheel-wrap{
+    position:relative;z-index:1;
+    width:min(100%,450px);aspect-ratio:1;
+    margin:24px auto 12px;
+  }
+  .wheel-frame{
+    position:absolute;inset:0;padding:10px;border-radius:50%;
+    background:conic-gradient(from 206deg,
+      #4a3518 0%,#c7a463 7%,#6b4e25 15%,#f0d8a2 25%,
+      #7a592b 37%,#c9a260 50%,#4f391b 64%,#e6cc93 77%,
+      #6d5026 89%,#4a3518 100%);
+    box-shadow:
+      0 30px 70px rgba(0,0,0,.58),
+      0 0 0 1px rgba(0,0,0,.7),
+      inset 0 0 18px rgba(0,0,0,.55);
+    transition:filter .5s ease,transform .5s ease;
+  }
+  .wheel-frame::before{
+    content:"";position:absolute;inset:7px;border-radius:50%;
+    background:#080c10;
+    box-shadow:inset 0 0 0 1px rgba(217,182,117,.28),inset 0 0 42px rgba(0,0,0,.85);
+  }
+  #wheel-a-canvas,#wheel-b-canvas{
+    position:relative;z-index:1;display:block;
+    width:100%;height:100%;border-radius:50%;
+  }
+
+  .studs{position:absolute;inset:0;z-index:2;border-radius:50%;pointer-events:none}
+  .stud{
+    position:absolute;width:3.5px;height:3.5px;border-radius:50%;
+    transform:translate(-50%,-50%);
+    background:#eed39b;opacity:.33;
+    box-shadow:0 0 4px rgba(238,211,155,.35);
+  }
+  .is-spinning .stud{
+    animation:studPulse .58s linear infinite;
+    animation-delay:var(--d,0s);
+  }
+
+  .pointer{
+    position:absolute;z-index:5;left:50%;top:-27px;
+    width:38px;height:59px;transform:translateX(-50%);
+    filter:drop-shadow(0 10px 12px rgba(0,0,0,.6));
+    transform-origin:50% 8%;
+  }
+  .is-spinning .pointer{animation:pointerTick .16s ease-in-out infinite alternate}
+
+  .hub{
+    position:absolute;z-index:4;left:50%;top:50%;
+    width:23.5%;aspect-ratio:1;transform:translate(-50%,-50%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:0;border-radius:50%;cursor:pointer;
+    color:var(--gold);
+    border:1px solid rgba(217,182,117,.58);
+    background:radial-gradient(circle at 36% 28%,#242d35 0%,#11171c 44%,#080b0f 100%);
+    box-shadow:
+      0 14px 34px rgba(0,0,0,.62),
+      0 0 0 6px rgba(8,12,16,.58),
+      0 0 0 7px rgba(217,182,117,.09),
+      inset 0 0 0 5px rgba(217,182,117,.045);
+    transition:transform .25s ease,box-shadow .25s ease,color .25s ease;
+  }
+  .hub::before{
+    content:"";position:absolute;inset:-13%;border-radius:50%;
+    border:1px dashed rgba(217,182,117,.23);
+    animation:orbit 34s linear infinite;
+  }
+  .hub::after{
+    content:"";position:absolute;inset:-23%;border-radius:50%;
+    border:1px solid rgba(217,182,117,.08);
+  }
+  .hub b{
+    font-family:var(--serif);font-size:clamp(27px,3.1vw,35px);font-weight:500;
+    line-height:1;letter-spacing:.04em;transform:translateY(-1px);
+  }
+  .hub small{
+    margin-top:7px;font-size:7px;line-height:1;letter-spacing:.28em;color:var(--cream-faint);
+  }
+  .hub:hover:not(:disabled){
+    transform:translate(-50%,-50%) scale(1.045);
+    color:#f5dda9;
+    box-shadow:
+      0 18px 42px rgba(0,0,0,.68),
+      0 0 0 6px rgba(8,12,16,.58),
+      0 0 0 7px rgba(217,182,117,.2),
+      0 0 34px rgba(217,182,117,.18),
+      inset 0 0 0 5px rgba(217,182,117,.06);
+  }
+  .hub:disabled{cursor:default;color:rgba(243,232,212,.42)}
+  .hub:disabled::before{animation-duration:90s;opacity:.5}
+  .hub:focus-visible,.reset:focus-visible{outline:1px solid var(--gold);outline-offset:5px}
+
+  .is-spinning .hub b{animation:hubPulse 1.1s ease-in-out infinite}
+  .is-empty .wheel-frame{filter:saturate(.32) brightness(.86)}
+  .is-resetting .wheel-frame{animation:resetPulse .62s ease}
+
+  /* ---------- readout ---------- */
+  .readout{
+    position:relative;z-index:1;
+    display:flex;flex-direction:column;justify-content:center;
+    min-height:136px;margin-top:18px;padding:18px 20px 18px 22px;
+    border:1px solid rgba(217,182,117,.13);border-radius:12px;
+    background:linear-gradient(100deg,rgba(217,182,117,.055),rgba(255,255,255,.012));
+    overflow:hidden;
+  }
+  .readout::before{
+    content:"";position:absolute;left:0;top:20px;bottom:20px;width:2px;
+    background:linear-gradient(180deg,transparent,var(--gold),transparent);opacity:.65;
+  }
+  .readout::after{
+    content:"";position:absolute;right:-70px;top:-80px;width:190px;height:190px;
+    background:radial-gradient(circle,rgba(217,182,117,.06),transparent 70%);
+    pointer-events:none;
+  }
+  .readout-kicker{
+    margin:0 0 9px;font-size:8px;font-weight:500;letter-spacing:.28em;
+    color:var(--gold-deep);text-transform:uppercase;
+  }
+  .readout-part{
+    margin:0 0 7px;font-size:9px;letter-spacing:.17em;color:var(--cream-faint);
+  }
+  .readout-theme{
+    margin:0;font-family:var(--serif);font-size:20px;font-weight:500;
+    line-height:1.5;letter-spacing:.015em;color:var(--cream);text-wrap:balance;
+  }
+  .readout-name{
+    margin-top:2px;font-size:31px;line-height:1.25;letter-spacing:.14em;
+  }
+  .readout-sub{
+    margin:7px 0 0;font-size:11.5px;line-height:1.7;letter-spacing:.03em;color:var(--cream-soft);
+  }
+  .readout-placeholder{
+    margin:0;font-size:12.5px;line-height:1.85;letter-spacing:.04em;color:rgba(243,232,212,.4);
+  }
+  .readout-loading{display:flex;align-items:center;gap:7px;min-height:30px}
+  .readout-loading span{
+    width:4px;height:4px;border-radius:50%;background:var(--gold);
+    animation:dotPulse 1s ease-in-out infinite;
+  }
+  .readout-loading span:nth-child(2){animation-delay:.14s}
+  .readout-loading span:nth-child(3){animation-delay:.28s}
+  .readout-loading em{
+    margin-left:7px;font-style:normal;font-size:11px;letter-spacing:.16em;color:var(--cream-soft);
+  }
+  .readout.is-revealed > *{animation:revealUp .55s cubic-bezier(.22,1,.36,1) both}
+  .readout.is-revealed > *:nth-child(2){animation-delay:.04s}
+  .readout.is-revealed > *:nth-child(3){animation-delay:.08s}
+  .readout.is-revealed > *:nth-child(4){animation-delay:.12s}
+
+  /* ---------- card foot ---------- */
+  .card-foot{
+    position:relative;z-index:1;
+    display:flex;align-items:flex-end;justify-content:space-between;gap:18px;
+    margin-top:auto;padding-top:16px;border-top:1px solid rgba(217,182,117,.1);
+  }
+  .mini-label{
+    display:block;font-size:7.5px;line-height:1;letter-spacing:.24em;
+    color:var(--cream-faint);white-space:nowrap;
+  }
+  .pips{display:flex;gap:7px;margin-top:11px;min-height:10px;align-items:center}
+  .pip{
+    width:8px;height:8px;transform:rotate(45deg);border-radius:1px;
+    background:rgba(217,182,117,.4);border:1px solid rgba(217,182,117,.55);
+    transition:background .4s ease,border-color .4s ease,opacity .4s ease;
+  }
+  .pip.is-used{background:transparent;border-color:rgba(243,232,212,.14);opacity:.8}
+
+  .selected-name{
+    margin-top:7px;font-family:var(--serif);font-size:14px;line-height:1.2;
+    letter-spacing:.1em;color:var(--gold);
+    transition:color .3s ease,font-size .3s ease;
+  }
+  .selected-name.is-pending{
+    font-family:var(--sans);font-size:9px;letter-spacing:.14em;
+    color:rgba(243,232,212,.26);
+  }
+  .once-lock{
+    display:inline-flex;align-items:center;gap:6px;flex:none;
+    padding:6px 10px;border:1px solid rgba(217,182,117,.16);border-radius:999px;
+    font-size:8px;line-height:1;letter-spacing:.16em;color:var(--cream-faint);
+    white-space:nowrap;
+  }
+  .once-lock svg{
+    width:10px;height:10px;fill:none;stroke:currentColor;
+    stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;
+  }
+  .is-done .once-lock{color:var(--gold);border-color:rgba(217,182,117,.34)}
+
+  .reset{
+    display:inline-flex;align-items:center;gap:7px;flex:none;
+    padding:7px 0;border:0;border-bottom:1px solid transparent;background:none;
+    color:var(--cream-soft);font-family:var(--sans);font-size:9.5px;letter-spacing:.14em;
+    cursor:pointer;transition:color .2s ease,border-color .2s ease,background .2s ease;
+  }
+  .reset svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+  .reset:hover:not(:disabled){color:var(--gold);border-color:var(--line-strong)}
+  .reset:disabled{opacity:.28;cursor:default}
+  .reset.is-primary{
+    padding:9px 16px;border:0;border-radius:999px;
+    background:linear-gradient(135deg,#ecd39f,#c39c58);
+    color:#1b1308;font-weight:600;letter-spacing:.1em;
+    box-shadow:0 8px 24px rgba(217,182,117,.18);
+  }
+  .reset.is-primary:hover{color:#120c05;background:linear-gradient(135deg,#f4dfb0,#d0aa66)}
+
+  /* ---------- index ---------- */
+  .index{
+    margin-top:86px;padding-top:38px;border-top:1px solid var(--line);
+  }
+  .index-head{
+    display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,390px);
+    align-items:end;gap:32px;margin-bottom:8px;
+  }
+  .index-head h2{
+    margin:11px 0 0;font-family:var(--serif);font-size:35px;font-weight:500;line-height:1.2;letter-spacing:.06em;
+  }
+  .index-note{
+    margin:0;font-size:11px;line-height:1.95;letter-spacing:.035em;
+    color:var(--cream-faint);text-align:right;
+  }
+  .index-grid{
+    list-style:none;margin:0;padding:0;
+    display:grid;grid-template-columns:1fr 1fr;column-gap:52px;
+  }
+  .index-item{
+    display:grid;grid-template-columns:52px minmax(0,1fr);gap:17px;
+    padding:24px 0 25px;border-top:1px solid rgba(217,182,117,.12);
+    animation:rise .7s both;animation-delay:calc(.1s + var(--i) * .055s);
+  }
+  .index-no{
+    padding-top:3px;font-family:var(--serif);font-size:25px;font-weight:400;
+    line-height:1;letter-spacing:.04em;color:rgba(217,182,117,.5);
+    transition:color .25s ease;
+  }
+  .index-chapter{margin:0;font-size:9px;line-height:1.6;letter-spacing:.13em;color:var(--cream-faint)}
+  .index-theme{
+    margin:6px 0 0;font-family:var(--serif);font-size:18px;font-weight:500;
+    line-height:1.62;letter-spacing:.015em;color:var(--cream);text-wrap:balance;
+  }
+  .index-desc{margin:7px 0 0;font-size:11px;line-height:1.75;color:var(--cream-soft)}
+  .index-item:hover .index-no{color:var(--gold)}
+
+  /* ---------- colophon ---------- */
+  .colophon{
+    display:flex;align-items:center;justify-content:space-between;gap:24px;
+    margin-top:58px;padding-top:20px;border-top:1px solid var(--line);
+    font-size:8.5px;line-height:1.8;letter-spacing:.17em;color:rgba(243,232,212,.3);
+  }
+  .colophon p{margin:0}
+
+  #fx-canvas{
+    position:fixed;inset:0;z-index:60;width:100%;height:100%;
+    pointer-events:none;
+  }
+
+  /* ---------- motion ---------- */
+  @keyframes rise{
+    from{opacity:0;transform:translateY(22px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+  @keyframes orbit{to{transform:rotate(360deg)}}
+  @keyframes studPulse{
+    0%,100%{opacity:.22;box-shadow:0 0 3px rgba(238,211,155,.25)}
+    50%{opacity:1;box-shadow:0 0 11px rgba(238,211,155,.9)}
+  }
+  @keyframes pointerTick{
+    from{transform:translateX(-50%) rotate(-1.3deg)}
+    to{transform:translateX(-50%) rotate(1.3deg)}
+  }
+  @keyframes hubPulse{
+    0%,100%{opacity:.75;transform:translateY(-1px) scale(1)}
+    50%{opacity:1;transform:translateY(-1px) scale(1.05)}
+  }
+  @keyframes bump{
+    0%{transform:translateY(0);color:var(--gold)}
+    45%{transform:translateY(-5px);color:#f7e6bf}
+    100%{transform:translateY(0);color:var(--gold)}
+  }
+  @keyframes dotPulse{
+    0%,100%{opacity:.25;transform:translateY(0)}
+    50%{opacity:1;transform:translateY(-2px)}
+  }
+  @keyframes revealUp{
+    from{opacity:0;transform:translateY(9px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+  @keyframes resetPulse{
+    0%{transform:scale(.972);filter:brightness(.65)}
+    55%{transform:scale(1.006);filter:brightness(1.12)}
+    100%{transform:scale(1);filter:brightness(1)}
+  }
+
+  @media (max-width:1080px){
+    .stage{gap:20px}
+    .wheel-card{padding:24px 24px 20px}
+    .hero-orbit{width:188px;height:188px}
+    .orbit-center b{font-size:46px}
+    .index-grid{column-gap:34px}
+  }
+
+  @media (max-width:900px){
+    .stage{grid-template-columns:1fr;max-width:640px;margin:0 auto}
+    .hero{grid-template-columns:1fr;padding:50px 0 56px}
+    .hero-orbit{display:none}
+    .index-head{grid-template-columns:1fr;gap:14px}
+    .index-note{text-align:left;max-width:440px}
+    .index-grid{grid-template-columns:1fr;column-gap:0}
+  }
+
+  @media (max-width:600px){
+    .page{padding:0 18px 48px}
+    .topline{padding-top:19px}
+    .top-meta{display:none}
+    .brand-text b{font-size:14px}
+    .hero{padding:42px 0 40px}
+    .hero h1{font-size:clamp(49px,15vw,76px);margin:16px 0 22px}
+    .lede{font-size:12.5px;line-height:1.95}
+    .wheel-card{padding:20px 16px 17px;border-radius:18px}
+    .plate{width:38px;height:38px;font-size:19px}
+    .card-head{gap:11px}
+    .card-title h2{font-size:21px}
+    .stock strong{font-size:29px}
+    .wheel-wrap{margin-top:18px}
+    .readout{padding:15px 16px 15px 18px;min-height:126px}
+    .readout-theme{font-size:17px}
+    .readout-name{font-size:27px}
+    .readout-sub{font-size:11px}
+    .readout-placeholder{font-size:11.5px}
+    .card-foot{gap:10px}
+    .pips{gap:6px}
+    .index{margin-top:58px;padding-top:30px}
+    .index-head h2{font-size:28px}
+    .index-item{grid-template-columns:42px minmax(0,1fr);gap:12px;padding:20px 0}
+    .index-no{font-size:22px}
+    .index-theme{font-size:16px}
+    .colophon{flex-direction:column;align-items:flex-start;gap:8px;margin-top:44px}
+  }
+
+  @media (max-width:480px){
+    .pointer{width:34px;height:53px}
+  }
+
+  @media (max-width:360px){
+    .pointer{top:-27px;width:32px;height:48px}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{
+      animation-duration:.01ms!important;
+      animation-iteration-count:1!important;
+      transition-duration:.01ms!important;
+      scroll-behavior:auto!important;
+    }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="goldPointer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f8e9c4"/>
+      <stop offset=".48" stop-color="#d8b371"/>
+      <stop offset="1" stop-color="#8e6a34"/>
+    </linearGradient>
+    <symbol id="pointerIcon" viewBox="0 0 40 62">
+      <path d="M20 60 L3 13 L20 3 L37 13 Z" fill="url(#goldPointer)" stroke="rgba(43,30,10,.55)" stroke-width="1"/>
+      <path d="M20 51 L9.5 16 L20 8.5 L30.5 16 Z" fill="#0b1015"/>
+      <circle cx="20" cy="15" r="4.2" fill="#e9cd96"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="ambient" aria-hidden="true"></div>
+
+<div class="page">
+  <header class="masthead">
+    <div class="topline">
+      <div class="brand">
+        <span class="seal">抽</span>
+        <span class="brand-text"><b>演讲双盘</b><i>SPEECH DRAW · 2026</i></span>
+      </div>
+      <div class="top-meta" aria-hidden="true">
+        <span>六个主题</span><span class="rule"></span><span>一位讲者</span>
+      </div>
+    </div>
+
+    <div class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">THE SPEECH DRAW <span class="slash">/</span> 演讲抽签</p>
+        <h1>双盘抽签</h1>
+        <p class="lede">先定主题，再定人选。<br>主题抽一份少一份，上台人选只落一次。</p>
+      </div>
+      <div class="hero-orbit" aria-hidden="true">
+        <svg class="orbit-svg" viewBox="0 0 240 240" fill="none">
+          <defs>
+            <path id="orbitPath" d="M120,120 m-92,0 a92,92 0 1,1 184,0 a92,92 0 1,1 -184,0"/>
+          </defs>
+          <circle cx="120" cy="120" r="101" stroke="rgba(217,182,117,.14)" stroke-width="1"/>
+          <circle cx="120" cy="120" r="76" stroke="rgba(217,182,117,.1)" stroke-width="1"/>
+          <circle cx="120" cy="120" r="59" stroke="rgba(217,182,117,.16)" stroke-width="1" stroke-dasharray="1 5"/>
+          <text class="orbit-ring-text"><textPath href="#orbitPath" startOffset="1%">SIX TOPICS · SIX SPEAKERS · ONE STAGE · </textPath></text>
+          <circle cx="120" cy="120" r="2.6" fill="rgba(217,182,117,.7)"/>
+        </svg>
+        <div class="orbit-center"><b>陆</b><small>SPEECH DRAW</small></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage">
+    <section class="wheel-card wheel-card--a" id="card-a" aria-labelledby="a-title">
+      <div class="card-head">
+        <span class="plate plate-a" aria-hidden="true">甲</span>
+        <div class="card-title">
+          <p class="eyebrow">WHEEL ONE · 不放回</p>
+          <h2 id="a-title">演讲主题</h2>
+        </div>
+        <div class="stock" aria-label="甲盘剩余主题数">
+          <strong id="a-stock" data-stock>6</strong><span>/ 6</span><em>剩余</em>
+        </div>
+      </div>
+
+      <div class="wheel-wrap" id="a-wrap">
+        <div class="wheel-frame">
+          <canvas id="wheel-a-canvas" role="img" aria-label="甲盘：六个演讲主题转盘，抽出一个即移出"></canvas>
+        </div>
+        <div class="studs" aria-hidden="true"></div>
+        <div class="pointer" aria-hidden="true"><svg viewBox="0 0 40 62"><use href="#pointerIcon"></use></svg></div>
+        <button class="hub" id="a-spin" type="button" aria-label="转动甲盘，抽取一个演讲主题">
+          <b>抽</b><small>SPIN</small>
+        </button>
+      </div>
+
+      <div class="readout" id="a-readout" aria-live="polite" aria-atomic="true">
+        <p class="readout-kicker">等待启封 · READY</p>
+        <p class="readout-placeholder">按下中央的「抽」字<br>第一个演讲主题将在此落定</p>
+      </div>
+
+      <div class="card-foot">
+        <div class="foot-left">
+          <span class="mini-label">盘中剩余</span>
+          <div class="pips" id="a-pips" aria-hidden="true"></div>
+        </div>
+        <button class="reset" id="a-reset" type="button">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2.6V6H10"/></svg>
+          <span>重置</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="wheel-card wheel-card--b" id="card-b" aria-labelledby="b-title">
+      <div class="card-head">
+        <span class="plate plate-b" aria-hidden="true">乙</span>
+        <div class="card-title">
+          <p class="eyebrow">WHEEL TWO · 仅此一次</p>
+          <h2 id="b-title">上台演讲</h2>
+        </div>
+        <div class="stock stock-once" aria-label="上台演讲人选仅抽取一次">
+          <strong id="b-stock" data-stock>1</strong><span>/ 1</span><em data-stock-label>仅一次</em>
+        </div>
+      </div>
+
+      <div class="wheel-wrap" id="b-wrap">
+        <div class="wheel-frame">
+          <canvas id="wheel-b-canvas" role="img" aria-label="乙盘：六位讲者转盘，仅抽取一次，确定上台人选"></canvas>
+        </div>
+        <div class="studs" aria-hidden="true"></div>
+        <div class="pointer" aria-hidden="true"><svg viewBox="0 0 40 62"><use href="#pointerIcon"></use></svg></div>
+        <button class="hub" id="b-spin" type="button" aria-label="转动乙盘，确定上台演讲人选">
+          <b>抽</b><small>SPIN</small>
+        </button>
+      </div>
+
+      <div class="readout" id="b-readout" aria-live="polite" aria-atomic="true">
+        <p class="readout-kicker">人选落定 · READY</p>
+        <p class="readout-placeholder">按下中央的「抽」字<br>从六位讲者中确定一位</p>
+      </div>
+
+      <div class="card-foot">
+        <div class="foot-left">
+          <span class="mini-label">上台人选</span>
+          <div class="selected-name is-pending" id="b-selected">待落定</div>
+        </div>
+        <span class="once-lock">
+          <svg viewBox="0 0 14 14" aria-hidden="true"><rect x="3" y="6.2" width="8" height="5.8" rx="1.2"/><path d="M5 6.2V4.7a2 2 0 0 1 4 0v1.5"/></svg>
+          仅此一次
+        </span>
+      </div>
+    </section>
+  </main>
+
+  <section class="index" aria-labelledby="index-title">
+    <div class="index-head">
+      <div>
+        <p class="eyebrow">THE SIX TOPICS <span class="slash">/</span> 主题索引</p>
+        <h2 id="index-title">六个演讲主题</h2>
+      </div>
+      <p class="index-note">主题盘抽完即止，上台人选只落一次。<br>以下为六个主题的完整章节。</p>
+    </div>
+    <ol class="index-grid" id="index-grid"></ol>
+  </section>
+
+  <footer class="colophon">
+    <p>规则 / 主题盘抽完即止 · 人选盘仅落一次 · 所有落定概率均等</p>
+    <p>六个主题 · 一位讲者</p>
+  </footer>
+</div>
+
+<canvas id="fx-canvas" aria-hidden="true"></canvas>
+<noscript><p style="text-align:center;padding:20px;color:#d9b675">此转盘需要启用 JavaScript 才能抽取。</p></noscript>
+
+<script>
+(() => {
+  'use strict';
+
+  const TAU = Math.PI * 2;
+  const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+  const mod = (n, m) => ((n % m) + m) % m;
+
+  const SECTIONS = [
+    {
+      id: 's1', no: '01',
+      lines: ['方位·蓝图', '与保证'],
+      range: '1—2 · 15',
+      partLabel: '第 1—2 · 15 部分',
+      chapter: '第 1—2 部分 · 第 15 部分',
+      theme: '方位·蓝图·保证',
+      desc: '从“关键时期”到“团结奋斗”',
+      full: '第1—2部分、第15部分：方位·蓝图·保证——从“关键时期”到“团结奋斗”'
+    },
+    {
+      id: 's2', no: '02',
+      lines: ['实体之基', '创新之翼'],
+      range: '3—4',
+      partLabel: '第 3—4 部分',
+      chapter: '第 3—4 部分',
+      theme: '固实体经济之基，强创新驱动之翼',
+      desc: '',
+      full: '第3—4部分：固实体经济之基，强创新驱动之翼'
+    },
+    {
+      id: 's3', no: '03',
+      lines: ['内需·体制', '与开放'],
+      range: '5—7',
+      partLabel: '第 5—7 部分',
+      chapter: '第 5—7 部分',
+      theme: '扩内需、活体制、拓开放',
+      desc: '夯实高质量发展的动力系统',
+      full: '第5—7部分：扩内需、活体制、拓开放——夯实高质量发展的动力系统'
+    },
+    {
+      id: 's4', no: '04',
+      lines: ['统筹城乡', '与区域'],
+      range: '8—9',
+      partLabel: '第 8—9 部分',
+      chapter: '第 8—9 部分',
+      theme: '统筹城乡与区域，重塑发展空间格局',
+      desc: '',
+      full: '第8—9部分：统筹城乡与区域，重塑发展空间格局'
+    },
+    {
+      id: 's5', no: '05',
+      lines: ['文化铸魂', '民生固本'],
+      range: '10—11',
+      partLabel: '第 10—11 部分',
+      chapter: '第 10—11 部分',
+      theme: '文化铸魂，民生固本',
+      desc: '让发展成果回到人本身',
+      full: '第10—11部分：文化铸魂，民生固本——让发展成果回到人本身'
+    },
+    {
+      id: 's6', no: '06',
+      lines: ['绿色·安全', '与国防'],
+      range: '12—14',
+      partLabel: '第 12—14 部分',
+      chapter: '第 12—14 部分',
+      theme: '守绿色底线，筑安全屏障，强国防支撑',
+      desc: '',
+      full: '第12—14部分：守绿色底线，筑安全屏障，强国防支撑'
+    }
+  ];
+
+  const PALETTE = [
+    { center: '#123f49', main: '#1a5963', edge: '#23737b' },
+    { center: '#531d24', main: '#74303a', edge: '#98414a' },
+    { center: '#254a35', main: '#346149', edge: '#47795b' },
+    { center: '#352a52', main: '#4c3d6f', edge: '#66558b' },
+    { center: '#5b3b1d', main: '#7b552c', edge: '#9d703c' },
+    { center: '#223650', main: '#324b6b', edge: '#456486' }
+  ];
+
+  const PEOPLE = [
+    { id: 'p1', no: '01', name: '何金岩' },
+    { id: 'p2', no: '02', name: '刘翱瑞' },
+    { id: 'p3', no: '03', name: '王柯清' },
+    { id: 'p4', no: '04', name: '姚兆基' },
+    { id: 'p5', no: '05', name: '杨振龙' },
+    { id: 'p6', no: '06', name: '普布旺堆' }
+  ];
+
+  const clonePool = items => items.map(item => ({ ...item, weight: 1 }));
+  const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------------- confetti ---------------- */
+  const FX = (() => {
+    const canvas = document.getElementById('fx-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let raf = 0;
+    let last = 0;
+    let dpr = 1;
+
+    const COLORS = ['#efd6a1', '#f8efdb', '#a8454d', '#568b70', '#c99a54', '#8aa7a2'];
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = Math.max(1, window.innerWidth);
+      const h = Math.max(1, window.innerHeight);
+      if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function burst(x, y) {
+      if (reducedMotion()) return;
+      resize();
+      const count = window.innerWidth < 600 ? 46 : 76;
+      for (let i = 0; i < count; i++) {
+        const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.28;
+        const speed = 5.5 + Math.random() * 9.5;
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * speed + (Math.random() - 0.5) * 2,
+          vy: Math.sin(angle) * speed + (Math.random() - 0.5) * 1.5,
+          gravity: 0.23 + Math.random() * 0.13,
+          rotation: Math.random() * TAU,
+          spin: (Math.random() - 0.5) * 0.32,
+          w: 3 + Math.random() * 6,
+          h: 2 + Math.random() * 4,
+          color: COLORS[Math.floor(Math.random() * COLORS.length)],
+          life: 1,
+          decay: 0.008 + Math.random() * 0.006
+        });
+      }
+      if (particles.length > 260) particles = particles.slice(-260);
+      if (!raf) {
+        last = performance.now();
+        raf = requestAnimationFrame(loop);
+      }
+    }
+
+    function loop(now) {
+      const dt = Math.min(2, (now - last) / 16.667);
+      last = now;
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      for (const p of particles) {
+        p.vy += p.gravity * dt;
+        p.vx *= 0.996;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.rotation += p.spin * dt;
+        p.life -= p.decay * dt;
+        ctx.save();
+        ctx.globalAlpha = clamp(p.life * 1.55, 0, 1);
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      }
+      particles = particles.filter(p => p.life > 0 && p.y < window.innerHeight + 50);
+      if (particles.length) {
+        raf = requestAnimationFrame(loop);
+      } else {
+        raf = 0;
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      }
+    }
+
+    window.addEventListener('resize', () => {
+      if (particles.length) resize();
+    }, { passive: true });
+
+    return { burst };
+  })();
+
+  /* ---------------- wheel ---------------- */
+  class Wheel {
+    constructor(card, options) {
+      this.card = card;
+      this.mode = options.mode; // 'deplete' | 'once'
+      this.kind = options.kind || 'topic'; // 'topic' | 'person'
+      this.items = options.items;
+      this.canvas = card.querySelector('canvas');
+      this.ctx = this.canvas.getContext('2d');
+      this.wrap = card.querySelector('.wheel-wrap');
+      this.spinBtn = card.querySelector('.hub');
+      this.resetBtn = card.querySelector('.reset');
+      this.readout = card.querySelector('.readout');
+      this.stockEl = card.querySelector('[data-stock]');
+      this.stockLabel = card.querySelector('[data-stock-label]');
+      this.selectedEl = card.querySelector('.selected-name');
+      this.pipsEl = card.querySelector('.pips');
+
+      this.pool = clonePool(this.items);
+      this.phase = 'idle';
+      this.winner = null;
+      this.highlighted = false;
+      this.rotation = -Math.PI / 2 - TAU / 12;
+      this.size = 0;
+      this.dpr = 1;
+      this.timers = new Set();
+      this.lastStock = this.mode === 'deplete' ? this.items.length : null;
+      this.pipSig = '';
+
+      this.buildStuds();
+      this.bind();
+      this.observe();
+
+      this.renderIdle();
+      this.updateUI();
+      this.draw();
+
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => this.draw()).catch(() => {});
+      }
+    }
+
+    buildStuds() {
+      const holder = this.wrap.querySelector('.studs');
+      if (!holder) return;
+      const n = 28;
+      for (let i = 0; i < n; i++) {
+        const angle = (i / n) * TAU - Math.PI / 2;
+        const dot = document.createElement('span');
+        dot.className = 'stud';
+        dot.style.left = (50 + Math.cos(angle) * 49) + '%';
+        dot.style.top = (50 + Math.sin(angle) * 49) + '%';
+        dot.style.setProperty('--d', ((i % 7) * 0.065) + 's');
+        holder.appendChild(dot);
+      }
+    }
+
+    bind() {
+      this.spinBtn.addEventListener('click', () => this.spin());
+      if (this.resetBtn) this.resetBtn.addEventListener('click', () => this.reset());
+    }
+
+    observe() {
+      this.ro = new ResizeObserver(() => this.resize());
+      this.ro.observe(this.canvas);
+      this.resize();
+    }
+
+    resize() {
+      const rect = this.canvas.getBoundingClientRect();
+      const size = Math.floor(rect.width);
+      if (!size) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      if (size === this.size && dpr === this.dpr) return;
+      this.size = size;
+      this.dpr = dpr;
+      this.canvas.width = Math.round(size * dpr);
+      this.canvas.height = Math.round(size * dpr);
+      this.draw();
+    }
+
+    setTimer(fn, ms) {
+      const id = window.setTimeout(() => {
+        this.timers.delete(id);
+        fn();
+      }, ms);
+      this.timers.add(id);
+      return id;
+    }
+
+    clearTimers() {
+      for (const id of this.timers) window.clearTimeout(id);
+      this.timers.clear();
+    }
+
+    available() {
+      return this.pool.filter(seg => seg.weight > 0.001);
+    }
+
+    availableCount() {
+      return this.available().length;
+    }
+
+    isDepleted() {
+      return this.mode === 'deplete' && this.availableCount() === 0;
+    }
+
+    spin() {
+      if (this.phase !== 'idle') return;
+      const pool = this.available();
+      if (!pool.length) return;
+
+      const winner = pool[Math.floor(Math.random() * pool.length)];
+      const total = this.pool.reduce((sum, seg) => sum + seg.weight, 0);
+      let acc = 0;
+      let offset = 0;
+      for (const seg of this.pool) {
+        if (seg.weight <= 0) continue;
+        if (seg.id === winner.id) {
+          offset = acc + seg.weight / 2;
+          break;
+        }
+        acc += seg.weight;
+      }
+
+      this.phase = 'spinning';
+      this.winner = winner;
+      this.highlighted = false;
+      this.updateUI();
+      this.renderSpinning();
+
+      const wedge = TAU * winner.weight / total;
+      const jitter = (Math.random() - 0.5) * wedge * 0.54;
+      const desired = -Math.PI / 2 - (offset / total) * TAU + jitter;
+      const current = this.rotation;
+      let delta = mod(desired, TAU) - mod(current, TAU);
+      if (delta < 0) delta += TAU;
+      const turns = reducedMotion()
+        ? 1
+        : (this.mode === 'once' ? 8 + Math.floor(Math.random() * 3) : 5 + Math.floor(Math.random() * 3));
+      const target = current + delta + turns * TAU;
+      const duration = reducedMotion()
+        ? 850
+        : (this.mode === 'once' ? 5000 + Math.random() * 650 : 3850 + Math.random() * 550);
+
+      this.animateRotation(target, duration).then(() => {
+        if (this.phase !== 'spinning') return;
+        this.setTimer(() => this.reveal(winner), reducedMotion() ? 0 : 170);
+      });
+    }
+
+    animateRotation(target, duration) {
+      return new Promise(resolve => {
+        const start = this.rotation;
+        const t0 = performance.now();
+        const step = now => {
+          const t = clamp((now - t0) / duration, 0, 1);
+          const eased = 1 - Math.pow(1 - t, 4.4);
+          this.rotation = start + (target - start) * eased;
+          this.draw();
+          if (t < 1) {
+            requestAnimationFrame(step);
+          } else {
+            this.rotation = target;
+            this.draw();
+            resolve();
+          }
+        };
+        requestAnimationFrame(step);
+      });
+    }
+
+    reveal(seg) {
+      if (this.phase !== 'spinning') return;
+      this.phase = this.mode === 'deplete' ? 'result' : 'done';
+      this.winner = seg;
+      this.highlighted = true;
+
+      this.draw();
+      this.renderResult(seg);
+      this.renderSelected(seg);
+      this.updateUI();
+      this.celebrate();
+
+      if (this.mode === 'deplete') {
+        this.setTimer(() => this.removeSegment(seg), reducedMotion() ? 650 : 1950);
+      }
+    }
+
+    removeSegment(seg) {
+      if (this.phase !== 'result') return;
+      this.phase = 'removing';
+      this.highlighted = false;
+      this.updateUI();
+
+      const startWeight = seg.weight;
+      const duration = reducedMotion() ? 120 : 720;
+      const t0 = performance.now();
+
+      const step = now => {
+        const t = clamp((now - t0) / duration, 0, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+        seg.weight = startWeight * (1 - eased);
+        this.draw();
+        if (t < 1) {
+          requestAnimationFrame(step);
+          return;
+        }
+        this.pool = this.pool.filter(s => s.id !== seg.id);
+        this.winner = null;
+        this.phase = this.pool.length ? 'idle' : 'empty';
+        this.updateUI();
+        this.draw();
+        if (this.phase === 'empty') {
+          this.renderEmpty();
+        } else {
+          const kicker = this.readout.querySelector('.readout-kicker');
+          if (kicker) kicker.textContent = '已移出 · 盘中余 ' + this.pool.length + ' 个主题';
+        }
+      };
+      requestAnimationFrame(step);
+    }
+
+    reset() {
+      if (!this.resetBtn) return;
+      if (this.phase === 'spinning' || this.phase === 'removing') return;
+      this.clearTimers();
+      this.pool = clonePool(this.items);
+      this.phase = 'idle';
+      this.winner = null;
+      this.highlighted = false;
+      this.rotation = -Math.PI / 2 - TAU / 12;
+      this.lastStock = this.mode === 'deplete' ? this.items.length : null;
+      this.pipSig = '';
+      this.renderIdle();
+      this.updateUI();
+      this.draw();
+
+      this.wrap.classList.remove('is-resetting');
+      void this.wrap.offsetWidth;
+      this.wrap.classList.add('is-resetting');
+      window.setTimeout(() => this.wrap.classList.remove('is-resetting'), 660);
+    }
+
+    celebrate() {
+      const rect = this.canvas.getBoundingClientRect();
+      const x = clamp(rect.left + rect.width / 2, 30, window.innerWidth - 30);
+      const y = clamp(rect.top + rect.height / 2, 80, window.innerHeight - 60);
+      FX.burst(x, y);
+    }
+
+    updateUI() {
+      const depleted = this.isDepleted();
+      const done = this.mode === 'once' && this.phase === 'done';
+      this.spinBtn.disabled = !(this.phase === 'idle' && !depleted);
+      const hubChar = this.spinBtn.querySelector('b');
+      if (hubChar) hubChar.textContent = done ? '定' : (depleted ? '尽' : '抽');
+      const hubSmall = this.spinBtn.querySelector('small');
+      if (hubSmall) hubSmall.textContent = done ? 'DONE' : (depleted ? 'EMPTY' : 'SPIN');
+      this.spinBtn.setAttribute(
+        'aria-label',
+        done
+          ? '上台人选已确定'
+          : depleted
+            ? '主题盘已抽完，请重新装盘'
+            : (this.phase === 'spinning'
+              ? '转盘旋转中'
+              : (this.mode === 'once' ? '转动乙盘，确定上台演讲人选' : '转动甲盘，抽取一个演讲主题'))
+      );
+
+      if (this.resetBtn) {
+        this.resetBtn.disabled = this.phase === 'spinning' || this.phase === 'removing';
+        this.resetBtn.querySelector('span').textContent = depleted ? '重新装盘' : '重置';
+        this.resetBtn.classList.toggle('is-primary', depleted);
+      }
+
+      this.wrap.classList.toggle('is-spinning', this.phase === 'spinning');
+      this.wrap.classList.toggle('is-empty', depleted);
+      this.card.classList.toggle('is-done', done);
+      this.card.setAttribute('aria-busy', this.phase === 'spinning' ? 'true' : 'false');
+
+      if (this.mode === 'deplete') {
+        const n = this.availableCount();
+        if (this.stockEl) {
+          this.stockEl.textContent = n;
+          if (this.lastStock !== null && n < this.lastStock) {
+            this.stockEl.classList.remove('bump');
+            void this.stockEl.offsetWidth;
+            this.stockEl.classList.add('bump');
+          }
+        }
+        this.lastStock = n;
+      } else {
+        if (this.stockEl) this.stockEl.textContent = done ? '0' : '1';
+        if (this.stockLabel) this.stockLabel.textContent = done ? '已确定' : '仅一次';
+      }
+      this.renderPips();
+    }
+
+    renderPips() {
+      if (!this.pipsEl) return;
+      const ids = new Set(this.available().map(s => s.id));
+      const sig = this.items.map(s => ids.has(s.id) ? '1' : '0').join('');
+      if (sig === this.pipSig) return;
+      this.pipSig = sig;
+      this.pipsEl.innerHTML = this.items.map(s =>
+        '<span class="pip' + (ids.has(s.id) ? '' : ' is-used') + '" title="' + s.theme + '"></span>'
+      ).join('');
+    }
+
+    renderSelected(seg) {
+      if (!this.selectedEl) return;
+      this.selectedEl.textContent = seg.name;
+      this.selectedEl.classList.remove('is-pending');
+    }
+
+    renderIdle() {
+      this.readout.classList.remove('is-revealed');
+      if (this.mode === 'once') {
+        this.readout.innerHTML =
+          '<p class="readout-kicker">人选落定 · READY</p>'
+          + '<p class="readout-placeholder">按下中央的「抽」字<br>从六位讲者中确定一位</p>';
+        return;
+      }
+      this.readout.innerHTML =
+        '<p class="readout-kicker">等待启封 · READY</p>'
+        + '<p class="readout-placeholder">按下中央的「抽」字<br>第一个演讲主题将在此落定</p>';
+    }
+
+    renderSpinning() {
+      this.readout.classList.remove('is-revealed');
+      this.readout.innerHTML = '<p class="readout-kicker">转盘旋转中 · SPINNING</p>'
+        + '<div class="readout-loading"><span></span><span></span><span></span><em>正在落定</em></div>';
+    }
+
+    renderResult(seg) {
+      this.readout.classList.remove('is-revealed');
+      if (this.mode === 'once') {
+        this.readout.innerHTML =
+          '<p class="readout-kicker">本次上台 · 人选已定</p>'
+          + '<h3 class="readout-theme readout-name">' + seg.name + '</h3>'
+          + '<p class="readout-sub">请上台演讲</p>';
+      } else {
+        this.readout.innerHTML =
+          '<p class="readout-kicker">本次主题 · 即将移出</p>'
+          + '<p class="readout-part">' + seg.partLabel + '</p>'
+          + '<h3 class="readout-theme">' + seg.theme + '</h3>'
+          + (seg.desc ? '<p class="readout-sub">' + seg.desc + '</p>' : '');
+      }
+      void this.readout.offsetWidth;
+      this.readout.classList.add('is-revealed');
+    }
+
+    renderEmpty() {
+      this.readout.classList.remove('is-revealed');
+      this.readout.innerHTML =
+        '<p class="readout-kicker">主题盘已空 · COMPLETE</p>'
+        + '<h3 class="readout-theme">六个主题，尽数揭晓</h3>'
+        + '<p class="readout-sub">点击下方「重新装盘」，让六个主题重回盘中。</p>';
+      void this.readout.offsetWidth;
+      this.readout.classList.add('is-revealed');
+    }
+
+    draw() {
+      const ctx = this.ctx;
+      const size = this.size;
+      if (!size) return;
+      const dpr = this.dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, size, size);
+
+      const cx = size / 2;
+      const cy = size / 2;
+      const R = size / 2 - 1;
+      const u = clamp(size / 420, 0.72, 1.16);
+
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      ctx.beginPath();
+      ctx.arc(0, 0, R, 0, TAU);
+      ctx.fillStyle = '#0a0e12';
+      ctx.fill();
+
+      const total = this.pool.reduce((sum, seg) => sum + seg.weight, 0);
+      if (total <= 0.0001) {
+        this.drawEmpty(ctx, R, u);
+        ctx.restore();
+        return;
+      }
+
+      const geos = [];
+      let acc = 0;
+      for (const seg of this.pool) {
+        if (seg.weight <= 0.0001) continue;
+        const span = TAU * seg.weight / total;
+        const a0 = this.rotation + acc;
+        const a1 = a0 + span;
+        const index = this.items.findIndex(s => s.id === seg.id);
+        geos.push({
+          seg,
+          a0,
+          a1,
+          mid: a0 + span / 2,
+          pal: PALETTE[(index < 0 ? 0 : index) % PALETTE.length]
+        });
+        acc += span;
+      }
+
+      // wedges
+      for (const g of geos) {
+        const grad = ctx.createRadialGradient(0, 0, R * 0.04, 0, 0, R);
+        grad.addColorStop(0, g.pal.edge);
+        grad.addColorStop(0.56, g.pal.main);
+        grad.addColorStop(1, g.pal.center);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, R, g.a0, g.a1);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+      }
+
+      // light and depth across the whole dial
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(0, 0, R, 0, TAU);
+      ctx.clip();
+      const gloss = ctx.createLinearGradient(0, -R, 0, R);
+      gloss.addColorStop(0, 'rgba(255,244,220,.11)');
+      gloss.addColorStop(0.44, 'rgba(255,255,255,0)');
+      gloss.addColorStop(1, 'rgba(0,0,0,.2)');
+      ctx.fillStyle = gloss;
+      ctx.fillRect(-R, -R, R * 2, R * 2);
+
+      const vignette = ctx.createRadialGradient(0, 0, R * 0.22, 0, 0, R);
+      vignette.addColorStop(0, 'rgba(0,0,0,.2)');
+      vignette.addColorStop(0.7, 'rgba(0,0,0,0)');
+      vignette.addColorStop(1, 'rgba(0,0,0,.28)');
+      ctx.fillStyle = vignette;
+      ctx.fillRect(-R, -R, R * 2, R * 2);
+      ctx.restore();
+
+      // separators
+      ctx.save();
+      ctx.strokeStyle = 'rgba(243,226,190,.18)';
+      ctx.lineWidth = 1;
+      for (const g of geos) {
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(g.a0) * R * 0.3, Math.sin(g.a0) * R * 0.3);
+        ctx.lineTo(Math.cos(g.a0) * R, Math.sin(g.a0) * R);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // fixed rim ticks
+      ctx.save();
+      for (let i = 0; i < 60; i++) {
+        const a = (i / 60) * TAU - Math.PI / 2;
+        const long = i % 5 === 0;
+        const r1 = R - 6;
+        const r2 = R - (long ? 15 : 10);
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * r1, Math.sin(a) * r1);
+        ctx.lineTo(Math.cos(a) * r2, Math.sin(a) * r2);
+        ctx.strokeStyle = long ? 'rgba(248,233,204,.3)' : 'rgba(248,233,204,.12)';
+        ctx.lineWidth = long ? 1.2 : 0.75;
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // rings
+      ctx.beginPath();
+      ctx.arc(0, 0, R - 1.4, 0, TAU);
+      ctx.strokeStyle = 'rgba(247,229,193,.5)';
+      ctx.lineWidth = 1.7;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(0, 0, R - 7.5, 0, TAU);
+      ctx.strokeStyle = 'rgba(0,0,0,.28)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(0, 0, R * 0.3, 0, TAU);
+      ctx.strokeStyle = 'rgba(217,182,117,.12)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // labels — kept upright while the wedges turn underneath
+      ctx.textAlign = 'center';
+
+      if (this.kind === 'person') {
+        const nameF = Math.max(15, 20.5 * u);
+        const pNoF = Math.max(7.2, 8.2 * u);
+        ctx.textBaseline = 'middle';
+        for (const g of geos) {
+          const rr = R * 0.6;
+          const x = Math.cos(g.mid) * rr;
+          const y = Math.sin(g.mid) * rr;
+          const alpha = clamp(g.seg.weight * 1.45, 0, 1);
+          ctx.globalAlpha = alpha;
+
+          ctx.font = '500 ' + pNoF + 'px "Noto Sans SC","PingFang SC",sans-serif';
+          ctx.fillStyle = 'rgba(246,226,189,.58)';
+          ctx.letterSpacing = (0.9 * u) + 'px';
+          ctx.fillText(g.seg.no, x, y - nameF * 0.82);
+
+          ctx.font = '600 ' + nameF + 'px "Noto Serif SC","Songti SC",serif';
+          ctx.fillStyle = '#f7eddb';
+          ctx.shadowColor = 'rgba(0,0,0,.42)';
+          ctx.shadowBlur = 5 * u;
+          ctx.shadowOffsetY = 1.4 * u;
+          ctx.letterSpacing = (1.1 * u) + 'px';
+          ctx.fillText(g.seg.name, x, y + nameF * 0.1);
+          ctx.shadowColor = 'transparent';
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetY = 0;
+          ctx.globalAlpha = 1;
+        }
+        ctx.letterSpacing = '0px';
+      } else {
+        const compact = size < 390;
+        const noF = Math.max(7.6, 8.8 * u);
+        const mainF = compact ? Math.max(13, 16.5 * u) : Math.max(14.5, 16.5 * u);
+        const partF = Math.max(7.2, 8.2 * u);
+        const lineH = mainF * 1.28;
+        const blockH = compact ? lineH * 2 : noF + 4 * u + lineH * 2 + 5 * u + partF;
+
+        ctx.textBaseline = 'top';
+
+        for (const g of geos) {
+          const rr = R * 0.615;
+          const x = Math.cos(g.mid) * rr;
+          const y = Math.sin(g.mid) * rr;
+          const alpha = clamp(g.seg.weight * 1.45, 0, 1);
+          let yy = y - blockH / 2;
+
+          ctx.globalAlpha = alpha;
+
+          if (!compact) {
+            ctx.font = '500 ' + noF + 'px "Noto Sans SC","PingFang SC",sans-serif';
+            ctx.fillStyle = 'rgba(246,226,189,.62)';
+            ctx.letterSpacing = (0.9 * u) + 'px';
+            ctx.fillText(g.seg.no, x, yy);
+            yy += noF + 4 * u;
+          }
+
+          ctx.font = '600 ' + mainF + 'px "Noto Serif SC","Songti SC",serif';
+          ctx.fillStyle = '#f6ecda';
+          ctx.shadowColor = 'rgba(0,0,0,.42)';
+          ctx.shadowBlur = 5 * u;
+          ctx.shadowOffsetY = 1.4 * u;
+          ctx.letterSpacing = (0.4 * u) + 'px';
+          ctx.fillText(g.seg.lines[0], x, yy);
+          yy += lineH;
+          ctx.fillText(g.seg.lines[1], x, yy);
+          yy += lineH + 5 * u;
+          ctx.shadowColor = 'transparent';
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetY = 0;
+
+          if (!compact) {
+            ctx.font = '400 ' + partF + 'px "Noto Sans SC","PingFang SC",sans-serif';
+            ctx.fillStyle = 'rgba(246,234,214,.48)';
+            ctx.letterSpacing = (0.7 * u) + 'px';
+            ctx.fillText('第 ' + g.seg.range + ' 部分', x, yy);
+          }
+          ctx.globalAlpha = 1;
+        }
+        ctx.letterSpacing = '0px';
+      }
+
+      // winner glow
+      if (this.highlighted && this.winner) {
+        const g = geos.find(item => item.seg.id === this.winner.id);
+        if (g) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.arc(0, 0, R - 1, g.a0, g.a1);
+          ctx.closePath();
+          ctx.fillStyle = 'rgba(255,232,180,.065)';
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(255,231,180,.72)';
+          ctx.lineWidth = 1.4;
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(0, 0, R - 2.6, g.a0 + 0.008, g.a1 - 0.008);
+          ctx.strokeStyle = 'rgba(255,241,208,.92)';
+          ctx.lineWidth = 2.2;
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      // central shadow under the hub
+      const hubShadow = ctx.createRadialGradient(0, 0, R * 0.2, 0, 0, R * 0.35);
+      hubShadow.addColorStop(0, 'rgba(0,0,0,.52)');
+      hubShadow.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.beginPath();
+      ctx.arc(0, 0, R * 0.35, 0, TAU);
+      ctx.fillStyle = hubShadow;
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    drawEmpty(ctx, R, u) {
+      ctx.beginPath();
+      ctx.arc(0, 0, R, 0, TAU);
+      ctx.fillStyle = '#080c10';
+      ctx.fill();
+
+      ctx.save();
+      ctx.setLineDash([2, 9]);
+      ctx.strokeStyle = 'rgba(217,182,117,.2)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(0, 0, R * 0.64, 0, TAU);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, R * 0.93, 0, TAU);
+      ctx.stroke();
+      ctx.restore();
+
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * TAU - Math.PI / 2;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * R * 0.32, Math.sin(a) * R * 0.32);
+        ctx.lineTo(Math.cos(a) * R * 0.9, Math.sin(a) * R * 0.9);
+        ctx.strokeStyle = 'rgba(217,182,117,.055)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        const dx = Math.cos(a) * R * 0.78;
+        const dy = Math.sin(a) * R * 0.78;
+        ctx.save();
+        ctx.translate(dx, dy);
+        ctx.rotate(a + Math.PI / 4);
+        ctx.fillStyle = 'rgba(217,182,117,.28)';
+        ctx.fillRect(-2, -2, 4, 4);
+        ctx.restore();
+      }
+
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = '500 ' + Math.max(14, 17 * u) + 'px "Noto Serif SC","Songti SC",serif';
+      ctx.fillStyle = 'rgba(229,201,148,.72)';
+      ctx.fillText('主题已尽', 0, -R * 0.4);
+      ctx.font = '400 ' + Math.max(7.2, 7.6 * u) + 'px "Noto Sans SC","PingFang SC",sans-serif';
+      ctx.letterSpacing = (1.2 * u) + 'px';
+      ctx.fillStyle = 'rgba(243,232,212,.3)';
+      ctx.fillText('SIX TOPICS · COMPLETE', 0, -R * 0.3);
+      ctx.letterSpacing = '0px';
+    }
+  }
+
+  /* ---------------- index ---------------- */
+  const indexGrid = document.getElementById('index-grid');
+  if (indexGrid) {
+    indexGrid.innerHTML = SECTIONS.map((s, i) =>
+      '<li class="index-item" style="--i:' + i + '">'
+        + '<span class="index-no">' + s.no + '</span>'
+        + '<div>'
+          + '<p class="index-chapter">' + s.chapter + '</p>'
+          + '<h3 class="index-theme">' + s.theme + '</h3>'
+          + (s.desc ? '<p class="index-desc">' + s.desc + '</p>' : '')
+        + '</div>'
+      + '</li>'
+    ).join('');
+  }
+
+  new Wheel(document.getElementById('card-a'), { mode: 'deplete', items: SECTIONS, kind: 'topic' });
+  new Wheel(document.getElementById('card-b'), { mode: 'once', items: PEOPLE, kind: 'person' });
+})();
+</script>
+</body>
+</html>
